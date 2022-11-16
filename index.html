@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+	</head>
+	<body>
+		<button onclick="connect()">Connect wallet</button>
+		<div>ChainId:<span id="chain_id"></span></div>
+		<div>BlockNumber:<span id="block_number"></span></div> 
+		<div>BlockTimestamp:<span id="block_timestamp"></span></div> 
+		<div>Current Account:<span id="account_address"></span></div> 
+		<div>Current Balance:<span id="account_balance"></span></div>
+		<br/>
+		<input type-"text" id="contract_address" />
+		<button onclick="read()">Read Contract</button>
+		<div>TokenSymbol:<span id="token_symbol"></span></div> 
+		<div>TotalSupply:<span id="token_totalSupply"></span></div> 
+		<div>Account Balance:<span id="token_balance"></span></div>
+		<br/>
+		<input type="text" id="to_account" />
+		<input type="text" id="transfer_amount" /> 
+		<button onclick="xcBatchAll()">xcBridge</button>
+		<div>estimateGas:<span id="estimate_gas"></span></div>
+		<div>gasPrice:<span id="gas_price"></span></div>
+		<div>confirmation:<span id="confirmation"></span></div>
+	</body>
+	<script src="./js/web3.min.js"></script>
+	<script src='./js/app.js'></script>
+</html>
