@@ -518,6 +518,7 @@ async function xcBatchAll(){
 		from: accountAddress,
 		value: "0x0"
 	});
+	
 	var gasPrice = await web3.eth.getGasPrice();
 	let nonce = await web3.eth.getTransactionCount(accountAddress);
 	let rawTransaction = {
@@ -530,6 +531,7 @@ async function xcBatchAll(){
 		data: batchData,
 		chainId: chainId
 	};
+	
 	web3.eth.sendTransaction(rawTransaction).on("confirmation", function(confirmation) {
 		console.log(confirmation);
 		document.getElementById("estimate_gas").innerText = estimateGasRes * 2;
