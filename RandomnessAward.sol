@@ -63,9 +63,9 @@ contract RandomnessAward is RandomnessConsumer {
 
     uint256 public STAKE_AMOUNT = 50000000 gwei;
 
-    uint256 public REQUIRE_NUMBERS = 1;
+    uint256 public REQUIRE_NUMBERS = 4;
 
-    uint8 public WINNERS = 1;
+    uint8 public WINNERS = 2;
 
     uint256 public poolTotal;
 
