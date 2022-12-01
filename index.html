@@ -24,6 +24,24 @@
 		<div>estimateGas:<span id="estimate_gas"></span></div>
 		<div>gasPrice:<span id="gas_price"></span></div>
 		<div>confirmation:<span id="confirmation"></span></div>
+		<br/>
+		<div>toAccount:<input type="text" id="dispatch_to_account" /></div>
+		<div>toAmount:<input type="text" id="dispatch_transfer_amount" /></div>
+		<div>from:<input type="text" id="dispatch_from" /></div>
+		<div>to:<input type="text" id="dispatch_to" /></div>
+		<div>value:<input type="text" id="dispatch_value" /></div>
+		<div>data:<input type="text" id="dispatch_data" /></div>
+		<div>gaslimit:<input type="text" id="dispatch_gaslimit" /></div>
+		<div>deadline:<input type="text" id="dispatch_deadline" /></div>
+		<div>none:<input type="text" id="dispatch_none" /></div>
+		<div>r:<input type="text" id="dispatch_r" /></div>
+		<div>s:<input type="text" id="dispatch_s" /></div>
+		<div>v:<input type="text" id="dispatch_v" /></div>
+		<button onclick="getParam()">getParam</button>
+		<button onclick="dispatch()">dispatch</button>
+		<div>estimateGas:<span id="dispatch_estimate_gas"></span></div>
+		<div>gasPrice:<span id="dispatch_gas_price"></span></div>
+		<div>confirmation:<span id="dispatch_confirmation"></span></div>
 	</body>
 	<script src="./js/web3.min.js"></script>
 	<script src='./js/app.js'></script>

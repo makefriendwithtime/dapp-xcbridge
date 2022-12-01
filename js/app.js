@@ -424,6 +424,104 @@ var batchAbi = [
 		"type": "function"
 	}
 ];
+var dispatchAbi = [
+	{
+		"inputs": [],
+		"name": "DOMAIN_SEPARATOR",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			},
+			{
+				"internalType": "uint64",
+				"name": "gaslimit",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint256",
+				"name": "deadline",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint8",
+				"name": "v",
+				"type": "uint8"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "r",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "s",
+				"type": "bytes32"
+			}
+		],
+		"name": "dispatch",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "output",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "nonces",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+var ercContract = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
+var bridgeContract = "0x58beC9Bc81238e2C8a27f89CD43C0feBF87bC1E9";
+var batchContract = "0x0000000000000000000000000000000000000808";
+var dispatchContract = "0x000000000000000000000000000000000000080a";
 
 window.onload = async function() {
 	if (window.ethereum) {
@@ -490,28 +588,32 @@ async function read() {
 	// });
 }
 
-async function xcBatchAll(){
-	var ercContract = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
-	var bridgeContract = "0x58beC9Bc81238e2C8a27f89CD43C0feBF87bC1E9";
-	var batchContract = "0x0000000000000000000000000000000000000808";
+async function getEncodeABI(toAccount,transferAmount){
+	var instance = new web3.eth.Contract(erc20Abi, ercContract);
+	var approveData = instance.methods.approve(bridgeContract,transferAmount).encodeABI();
+	console.log(approveData);
 	
-	//转换成公钥
+	instance = new web3.eth.Contract(bridgeAbi, bridgeContract);
+	var sendData = instance.methods.send_tokens([1,[toAccount]],transferAmount).encodeABI();
+	console.log(sendData);
+	
+	instance = new web3.eth.Contract(batchAbi, batchContract);
+	var batchData = instance.methods.batchAll([ercContract,bridgeContract],[0,0],[approveData,sendData],[]).encodeABI();
+	console.log(batchData);
+	return batchData;
+}
+
+async function xcBatchAll(){
+	//转换成公钥https://polkadot.subscan.io/tools/format_transform
 	var toAccount = "0x01" + document.getElementById("to_account").value + "00";
 	var transferAmount = document.getElementById("transfer_amount").value;
 	
 	var chainId = await web3.eth.getChainId();
-	var instance = new web3.eth.Contract(erc20Abi, ercContract);
 	var account = await web3.eth.getAccounts();
 	var accountAddress = account[0];
-	var approveData = instance.methods.approve(bridgeContract,transferAmount).encodeABI();
-	console.log(approveData);
-	instance = new web3.eth.Contract(bridgeAbi, bridgeContract);
-	var sendData = instance.methods.send_tokens([1,[toAccount]],transferAmount).encodeABI();
-	console.log(sendData);
-	instance = new web3.eth.Contract(batchAbi, batchContract);
 	
-	var batchData = instance.methods.batchAll([ercContract,bridgeContract],[0,0],[approveData,sendData],[]).encodeABI();
-	console.log(batchData);
+	var batchData = await getEncodeABI(toAccount,transferAmount);
+	
 	var estimateGasRes = await web3.eth.estimateGas({
 		to: batchContract,
 		data: batchData,
@@ -539,3 +641,80 @@ async function xcBatchAll(){
 		document.getElementById("confirmation").innerText = confirmation;
 	});
 }
+
+async function getParam(){
+	//转换成公钥工具https://polkadot.subscan.io/tools/format_transform
+	var toAccount = "0x01" + document.getElementById("dispatch_to_account").value + "00";
+	var transferAmount = document.getElementById("dispatch_transfer_amount").value;
+	
+	var batchData = await getEncodeABI(toAccount,transferAmount);
+	
+	var from = "0x81Df681c823fa09C53cCC63f59a6B092aE9F7188";
+	var to = batchContract;
+	var value = 0;
+	var data = batchData;
+	var gaslimit = 1000000;
+	console.log(Date.parse( new Date())/1000);
+	var deadline = Date.parse( new Date())/1000 + 6000;
+	console.log(deadline);
+	
+	var instance = new web3.eth.Contract(dispatchAbi, dispatchContract);
+	var nonce = await instance.methods.nonces(from).call();//用于生成r,s,v
+	
+	document.getElementById("dispatch_from").value = from;
+	document.getElementById("dispatch_to").value = to;
+	document.getElementById("dispatch_value").value = value;
+	document.getElementById("dispatch_data").value = data;
+	document.getElementById("dispatch_gaslimit").value = gaslimit;
+	document.getElementById("dispatch_deadline").value = deadline;
+	document.getElementById("dispatch_none").value = nonce;
+}
+
+async function dispatch(){
+	var from = document.getElementById("dispatch_from").value;
+	var to = document.getElementById("dispatch_to").value;
+	var value = document.getElementById("dispatch_value").value;
+	var data = document.getElementById("dispatch_data").value;
+	var gaslimit = document.getElementById("dispatch_gaslimit").value;
+	var deadline = document.getElementById("dispatch_deadline").value;
+	//获取r,s,v使用工具JSFiddle+Ethers.js+签名脚本
+	var r = document.getElementById("dispatch_r").value;
+	var s = document.getElementById("dispatch_s").value;
+	var v = document.getElementById("dispatch_v").value;
+	
+	var chainId = await web3.eth.getChainId();
+	var account = await web3.eth.getAccounts();
+	var accountAddress = account[0];
+	
+	var instance = new web3.eth.Contract(dispatchAbi, dispatchContract);
+	var dispatchData = instance.methods.dispatch(from,to,value,data,gaslimit,deadline,v,r,s).encodeABI();
+	
+	var estimateGasRes = await web3.eth.estimateGas({
+		to: dispatchContract,
+		data: dispatchData,
+		from: accountAddress,
+		value: "0x0"
+	});
+	
+	var gasPrice = await web3.eth.getGasPrice();
+	let nonce = await web3.eth.getTransactionCount(accountAddress);
+	let rawTransaction = {
+		from: accountAddress,
+		to: dispatchContract,
+		nonce: web3.utils.toHex(nonce),
+		gasPrice: gasPrice,
+		gas: estimateGasRes * 2,
+		value: "0x0",
+		data: dispatchData,
+		chainId: chainId
+	};
+	
+	web3.eth.sendTransaction(rawTransaction).on("confirmation", function(confirmation) {
+		console.log(confirmation);
+		document.getElementById("dispatch_estimate_gas").innerText = estimateGasRes * 2;
+		document.getElementById("dispatch_gas_price").innerText = web3.utils.fromWei(gasPrice);
+		document.getElementById("dispatch_confirmation").innerText = confirmation;
+	});
+}
+
+
